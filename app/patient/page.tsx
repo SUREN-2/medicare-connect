@@ -13,7 +13,10 @@ import UploadProof from "@/components/upload-proof";
 import { MedicationProgressCard } from "@/components/progress-card";
 
 export default function PatientPage() {
-  const [selectedDate, setSelectedDate] = React.useState<Date>(new Date());
+  const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(
+    new Date(),
+  );
+  // const [selectedDate, setSelectedDate] = React.useState<Date>(new Date());
   const [file, setFile] = React.useState<File | null>(null);
 
   type StatusType = "taken" | "missed";
