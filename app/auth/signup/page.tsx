@@ -10,6 +10,8 @@ export default function SignupPage() {
         <div className="flex items-center">
           <IconHeartHandshake className="w-8 h-8 text-brand-clr" />
 
+          {/* testing */}
+
           <a
             href="#"
             className="flex items-center gap-2 self-center font-xl text-2xl font-bold font-sans text-brand-clr"
