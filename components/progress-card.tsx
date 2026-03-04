@@ -1,12 +1,16 @@
 import { Progress } from "@/components/ui/progress";
+import { usePatientStats } from "@/hooks/use-PatientLogs";
 
 export function MedicationProgressCard() {
-  const progress = 56;
+  const { data: stats, isLoading: statsLoading } = usePatientStats();
 
-  const stats = {
-    taken: 14,
-    missed: 3,
-    remaining: 8,
+  const userData = stats?.stats || null;
+  const progress = userData?.consistencyRate;
+
+  const userStats = {
+    taken: userData?.takenDaysCurrentMonth || "-",
+    missed: userData?.missedDaysCurrentMonth || "-",
+    remaining: userData?.remainingDaysCurrentMonth || "-",
   };
 
   return (
@@ -23,17 +27,19 @@ export function MedicationProgressCard() {
       <div className="grid grid-cols-3 gap-3 text-center mt-2">
         <div className="rounded-lg bg-green-50 p-3">
           <p className="text-xs text-muted-foreground">Taken</p>
-          <p className="text-lg font-bold text-green-700">{stats.taken}</p>
+          <p className="text-lg font-bold text-green-700">{userStats.taken}</p>
         </div>
 
         <div className="rounded-lg bg-red-50 p-3">
           <p className="text-xs text-muted-foreground">Missed</p>
-          <p className="text-lg font-bold text-red-600">{stats.missed}</p>
+          <p className="text-lg font-bold text-red-600">{userStats.missed}</p>
         </div>
 
         <div className="rounded-lg bg-yellow-50 p-3">
           <p className="text-xs text-muted-foreground">Remaining</p>
-          <p className="text-lg font-bold text-yellow-600">{stats.remaining}</p>
+          <p className="text-lg font-bold text-yellow-600">
+            {userStats.remaining}
+          </p>
         </div>
       </div>
     </div>

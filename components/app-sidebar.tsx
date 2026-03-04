@@ -39,6 +39,7 @@ import {
   SidebarGroupContent,
   SidebarGroupLabel,
 } from "@/components/ui/sidebar";
+import { useLogout } from "@/hooks/use-Logout";
 
 const data = {
   user: {
@@ -129,6 +130,7 @@ type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
 
 export function AppSidebar({ onNavigate, ...props }: AppSidebarProps) {
   const router = useRouter();
+  const { mutate: logout, isPending } = useLogout();
 
   return (
     <Sidebar collapsible="offcanvas" {...props}>
@@ -144,7 +146,7 @@ export function AppSidebar({ onNavigate, ...props }: AppSidebarProps) {
                   <IconHeartHandshake className="w-full h-full text-purple-700" />
                 </div>
 
-                <span className="text-xl font-semibold text-purple-700">
+                <span className="text-xl font-semibold text-brand-clr">
                   Medicare Connect
                 </span>
               </a>
@@ -181,11 +183,12 @@ export function AppSidebar({ onNavigate, ...props }: AppSidebarProps) {
               ))}
               <SidebarMenuItem>
                 <SidebarMenuButton
-                  className="curson-pointer !important"
-                  onClick={() => router.push("/")}
+                  className="cursor-pointer"
+                  onClick={() => logout()}
+                  disabled={isPending}
                 >
                   <IconLogout />
-                  <span>Logout</span>
+                  <span>{isPending ? "Logging out..." : "Logout"}</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
@@ -196,9 +199,9 @@ export function AppSidebar({ onNavigate, ...props }: AppSidebarProps) {
         {/* <NavDocuments items={data.documents} />
         <NavSecondary items={data.navSecondary} className="mt-auto" /> */}
       </SidebarContent>
-      <SidebarFooter>
+      {/* <SidebarFooter>
         <NavUser user={data.user} />
-      </SidebarFooter>
+      </SidebarFooter> */}
     </Sidebar>
   );
 }

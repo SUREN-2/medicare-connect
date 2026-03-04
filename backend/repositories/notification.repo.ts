@@ -2,10 +2,10 @@ import { supabaseAdmin } from "../lib/supabase";
 import { AppError } from "../lib/error";
 import { NotificationInput } from "../types/nofitication.types";
 
-export const NotificationSettingsRepo = async (data: NotificationInput) => {
+export const NotificationSettingsRepo = async (data: NotificationInput , patientId :string) => {
   const { error } = await supabaseAdmin.from("notification_settings").upsert(
     {
-      patient_id: data.patientId,
+      patient_id: patientId,
       schedule_time: data.schedule_time,
       remainder_hours: data.remainder_hours,
       email: data.email,
@@ -30,4 +30,17 @@ export const updateMedicationScheduleRepo = async (
     .eq("patient_id", patientId);
 
   if (error) throw new AppError(error.message, 500);
+};
+
+
+export const getNotificationSettingsRepo = async (patientId: string) => {
+  const { data, error } = await supabaseAdmin
+    .from("notification_settings")
+    .select("*")
+    .eq("patient_id", patientId)
+    .maybeSingle(); 
+
+  if (error) throw new AppError(error.message, 500);
+
+  return data;
 };

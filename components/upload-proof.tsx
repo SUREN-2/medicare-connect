@@ -4,13 +4,47 @@ import { useRef, useState } from "react";
 import { Camera, Upload, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export default function UploadProof() {
+export default function UploadProof({
+  onUpload,
+  disabled,
+}: {
+  onUpload?: (url: string) => void;
+  disabled?: boolean;
+}) {
   const [file, setFile] = useState<File | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const handleFile = (selectedFile: File) => {
+  const uploadToLocal = async (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const res = await fetch("/api/upload", {
+      method: "POST",
+      body: formData,
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data.message);
+
+    return data.url;
+  };
+
+  const handleFile = async (selectedFile: File) => {
     if (!selectedFile.type.startsWith("image/")) return;
+
     setFile(selectedFile);
+
+    try {
+      const url = await uploadToLocal(selectedFile);
+
+      console.log("Uploaded:", url);
+
+      // ✅ send to parent
+      onUpload?.(url);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const onDrop = (e: React.DragEvent<HTMLDivElement>) => {
@@ -37,12 +71,14 @@ export default function UploadProof() {
       />
 
       <div
-        onDragOver={(e) => e.preventDefault()}
-        onDrop={onDrop}
-        onClick={openFilePicker}
-        className="border-2 border-dashed border-purple-300 rounded-2xl 
-                           p-8 text-center hover:bg-purple-50 transition 
-                            text-center cursor-pointer bg-muted/30 backdrop-blur-md"
+        onDragOver={(e) => !disabled && e.preventDefault()}
+        onDrop={disabled ? undefined : onDrop}
+        onClick={disabled ? undefined : openFilePicker}
+        className={`border-2 border-dashed border-purple-300 rounded-2xl 
+    p-8 text-center transition 
+    bg-muted/30 backdrop-blur-md
+    ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:bg-purple-50"}
+  `}
       >
         {!file ? (
           <>
@@ -50,20 +86,6 @@ export default function UploadProof() {
             <p className="text-sm text-muted-foreground">
               Drag & drop image here
             </p>
-            <p className="text-xs mt-1 text-muted-foreground/70">
-              or click to upload / take photo
-            </p>
-
-            <div className="flex justify-center gap-3 mt-4">
-              <Button variant="secondary" size="sm">
-                Upload
-              </Button>
-
-              <Button variant="outline" size="sm">
-                <Camera className="w-4 h-4 mr-1" />
-                Take Photo
-              </Button>
-            </div>
           </>
         ) : (
           <div className="space-y-3">
@@ -74,7 +96,7 @@ export default function UploadProof() {
             />
 
             <div className="flex justify-center gap-3">
-              <Button size="sm" onClick={openFilePicker}>
+              <Button size="sm" onClick={openFilePicker} disabled={disabled}>
                 Change
               </Button>
 
@@ -82,6 +104,7 @@ export default function UploadProof() {
                 size="sm"
                 variant="destructive"
                 onClick={() => setFile(null)}
+                disabled={disabled}
               >
                 <Trash2 className="w-4 h-4 mr-1" />
                 Delete

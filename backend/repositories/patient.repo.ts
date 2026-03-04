@@ -10,10 +10,40 @@ export const ProfileRepo = async (patientId: string) => {
       .eq("id", patientId)
       .maybeSingle();
 
+
+    
+
     if (error) {
       throw new AppError("Database error", 500);
     }
     if (!data) throw new AppError("Patient not found", 404);
+
+
+    return data;
+  } catch (err) {
+    console.error("Network error:", err);
+
+    throw new AppError(
+      "Service temporarily unavailable. Please try again.",
+      503,
+    );
+  }
+};
+
+
+export const getMedicationRepo = async (patientId: string) => {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from("medications")
+      .select("*")
+      .eq("patient_id", patientId)
+      .maybeSingle();
+
+    if (error) {
+      throw new AppError("Database error", 500);
+    }
+    if (!data) throw new AppError("Patient not found", 404);
+
 
     return data;
   } catch (err) {
@@ -120,6 +150,8 @@ export const takeMedicationRepo = async ({
   try {
     const today = new Date().toISOString().split("T")[0];
 
+    console.log('urlll'+ photoUrl)
+
     const { data: existing, error: fetchError } = await supabaseAdmin
       .from("medication_logs")
       .select("id")
@@ -134,7 +166,7 @@ export const takeMedicationRepo = async ({
       taken: true,
       taken_at: new Date().toISOString(),
       status: "taken",
-      photo_url: photoUrl || null,
+      photo_url: photoUrl,
     };
 
     if (existing) {

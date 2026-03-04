@@ -6,12 +6,31 @@ export async function POST(req: NextRequest) {
     // console.log("hi");
     const body = await req.json();
 
-    const data = await loginUser(body);
+    const session = await loginUser(body);
 
-    return NextResponse.json({
-      success: true,
-      data,
-    });
+    console.log(session)
+
+    if (!session) {
+    return NextResponse.json(
+      { message: "Invalid credentials" },
+      { status: 401 }
+    );
+  }
+
+  
+
+  const response = NextResponse.json({
+    accessToken: session.access_token,
+  });
+
+  response.cookies.set("refresh_token", session.refresh_token, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "strict",
+    path: "/",
+  });
+
+  return response;
   } catch (error: any) {
     return NextResponse.json(
       {

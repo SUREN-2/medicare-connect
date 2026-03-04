@@ -1,11 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { takeMedication } from "@/backend/services/patient.service";
+import { User } from "@/backend/types/auth.types";
+import { withAuth } from "@/backend/middleware/withAuth";
 
-export async function POST(req: NextRequest) {
+export const POST = withAuth(async (req: NextRequest, user: User) => {
+
   try {
-    const body = await req.json();
 
-    const { patientId, medicationId, photoUrl } = body;
+
+    console.log('hii')
+    const body = await req.json();
+    const patientId = user.id
+
+    const {medicationId, photoUrl } = body;
+
+    console.log(body)
+    console.log(patientId)
 
     if (!patientId || !medicationId) {
       return NextResponse.json(
@@ -30,4 +40,4 @@ export async function POST(req: NextRequest) {
       { status: 500 },
     );
   }
-}
+})

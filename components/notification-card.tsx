@@ -21,6 +21,12 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 
+// ✅ IMPORT HOOKS
+import {
+  useNotifications,
+  useUpdateReminderSettings,
+} from "@/hooks/use-Notification"; // adjust path if needed
+
 // ✅ Zod Schema
 const schema = z
   .object({
@@ -52,6 +58,7 @@ const schema = z
       });
     }
   });
+
 type FormData = z.infer<typeof schema>;
 
 export default function NotificationSettingsCard() {
@@ -59,7 +66,6 @@ export default function NotificationSettingsCard() {
     register,
     handleSubmit,
     setValue,
-    control,
     watch,
     formState: { errors },
   } = useForm<FormData>({
@@ -76,24 +82,52 @@ export default function NotificationSettingsCard() {
 
   const emailEnabled = watch("emailEnabled");
 
+  // ✅ FETCH EXISTING SETTINGS
+  const { data, isLoading } = useNotifications();
+
+  // ✅ UPDATE MUTATION
+  const updateSettings = useUpdateReminderSettings();
+
+  // ✅ PREFILL FORM
+  useEffect(() => {
+    if (data?.data) {
+      const settings = data.data;
+
+      setValue("emailEnabled", settings.reminder_enabled);
+      setValue("caretakerEmail", settings.email || "");
+      setValue("alertAfter", String(settings.remainder_hours || ""));
+      setValue("reminderTime", settings.schedule_time || "");
+      setValue("subject", settings.email_subject || "");
+      setValue("content", settings.email_body || "");
+    }
+  }, [data, setValue]);
+
   const sanitize = (value: string) => value.replace(/[<>]/g, "");
 
   const onSubmit = (data: FormData) => {
     const cleanData = {
-      ...data,
-      caretakerEmail: sanitize(data.caretakerEmail || ""),
-      subject: sanitize(data.subject),
-      content: sanitize(data.content),
+      schedule_time: data.reminderTime,
+      remainder_hours: Number(data.alertAfter),
+      email: sanitize(data.caretakerEmail || ""),
+      email_subject: sanitize(data.subject),
+      email_body: sanitize(data.content),
+      reminder_enabled: data.emailEnabled,
     };
 
-    console.log("Sanitized Data:", cleanData);
-
-    toast("Preferences Saved", {
-      description: "Notification settings updated successfully",
+    // ✅ CALL API
+    updateSettings.mutate(cleanData, {
+      onSuccess: () => {
+        toast.success("Preferences saved successfully");
+      },
+      onError: () => {
+        toast.error("Failed to save settings");
+      },
     });
-
-    toast.success("Preferences saved successfully");
   };
+
+  if (isLoading) {
+    return <p className="text-center">Loading...</p>;
+  }
 
   return (
     <Card className="w-full mx-auto rounded-2xl gap-0 shadow-xl border bg-gradient-to-br from-white to-gray-50">
@@ -201,8 +235,9 @@ export default function NotificationSettingsCard() {
           <Button
             onClick={handleSubmit(onSubmit)}
             className="px-6 py-2 rounded-lg shadow-md hover:scale-105 transition"
+            disabled={updateSettings.isPending}
           >
-            <i className="bi bi-floppy-fill"></i> Save Settings
+            {updateSettings.isPending ? "Saving..." : "Save Settings"}
           </Button>
         </div>
       </CardContent>

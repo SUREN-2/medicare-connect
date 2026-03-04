@@ -4,6 +4,7 @@ import {
   getPatientMedicationLogsRepo,
   getLast7DaysLogsRepo,
   takeMedicationRepo,
+  getMedicationRepo,
 } from "../repositories/patient.repo";
 type MedicationData = {
   date: string;
@@ -27,6 +28,9 @@ export const getPatientStats = async (patientId: string) => {
   const profile = await ProfileRepo(patientId);
 
   const logs = await getMedicationLogsRepo(patientId, monthStartStr);
+
+
+  const medicationData = await getMedicationRepo(patientId)
 
   const monthLogs = logs || [];
 
@@ -63,6 +67,10 @@ export const getPatientStats = async (patientId: string) => {
 
   return {
     patientName: profile.name,
+    medicineName : medicationData.name,
+    dosage: medicationData.dosage,
+    scheduleTime : medicationData.schedule_time,
+    medicineId: medicationData.id,
     todayStatus,
     consistencyRate: consistency,
     streak,
@@ -117,6 +125,7 @@ export const getLast7DaysLogs = async (patientId: string) => {
     status: log.status,
     time: weekFormatTime(log.created_at),
     taken_at: log.taken_at ? formatTime(log.taken_at) : "-",
+    url: log.photo_url
   }));
 };
 

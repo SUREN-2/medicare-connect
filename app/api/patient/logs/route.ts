@@ -2,11 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { getPatientMedicationLogs } from "@/backend/services/patient.service";
 import { handleError } from "@/backend/lib/errorhandler";
 import { withAuth } from "@/backend/middleware/withAuth";
+import { User } from "@/backend/types/auth.types";
 
-export const GET = withAuth(async (req: NextRequest, user: any) => {
+export const GET = withAuth(async (req: NextRequest, user: User) => {
   try {
-    const { searchParams } = new URL(req.url);
-    const patientId = searchParams.get("patientId");
+    // const { searchParams } = new URL(req.url);
+    const patientId = user.id
 
     if (!patientId) {
       return NextResponse.json(

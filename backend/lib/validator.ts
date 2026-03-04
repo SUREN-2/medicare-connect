@@ -25,17 +25,32 @@ export const nameSchema = z
 
 
 export const notificationSchema = z.object({
-  patientId: uuidSchema,
+  schedule_time: z
+    .string()
+    .min(1, "Schedule time is required")
+    .transform((val) => val.slice(0, 5)) // normalize HH:MM
+    .refine(
+      (val) => /^([01]\d|2[0-3]):([0-5]\d)$/.test(val),
+      "Invalid time format (HH:MM)"
+    ),
 
-  schedule_time: z.string(),
   remainder_hours: z
     .number()
     .min(0, "Cannot be negative")
     .max(72, "Max 72 hours"),
+
   email: emailSchema,
-  email_subject: z.string().min(3, "Subject too short").max(100),
-  email_body: z.string().min(10, "Body must be at least 10 characters"),
-  reminder_enabled: z.boolean().default(true),
+
+  email_subject: z
+    .string()
+    .min(3, "Subject too short")
+    .max(100),
+
+  email_body: z
+    .string()
+    .min(10, "Body must be at least 10 characters"),
+
+  reminder_enabled: z.boolean().default(false),
 });
 
 

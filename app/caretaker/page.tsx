@@ -1,15 +1,48 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SectionCards } from "@/components/section-cards";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { IconUser } from "@tabler/icons-react";
 import DashboardTabs from "@/components/dashtabs";
+import { usePatientStats } from "@/hooks/use-PatientLogs";
+import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
 
 export default function Page() {
   const [activeTab, setActiveTab] = useState("user_dashboard");
+
+  const { accessToken } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (accessToken === null) {
+      router.push("/auth/login");
+    }
+  }, [accessToken, router]);
+
+  if (accessToken === undefined) {
+    return <p>Loading...</p>;
+  }
+
+  if (accessToken === null) {
+    return null;
+  }
+
+  const { data: stats, isLoading: statsLoading } = usePatientStats();
+
+  if (accessToken === undefined) {
+    return <p>Loading...</p>;
+  }
+
+  if (statsLoading) {
+    return <p>Loading data...</p>;
+  }
+
+  const userData = stats?.stats || null;
+
   return (
     <div className="">
       <SidebarProvider
@@ -30,7 +63,7 @@ export default function Page() {
                   <IconUser className="w-6 h-6 text-primary" />
 
                   <h1 className="text-2xl md:text-3xl font-bold text-l-primary">
-                    Suren
+                    {userData.patientName}
                     <span className="text-muted-foreground text-lg font-normal">
                       {" "}
                       medication stats

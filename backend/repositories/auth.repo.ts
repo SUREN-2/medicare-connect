@@ -1,18 +1,29 @@
+import { AppError } from "../lib/error";
 import { supabase, supabaseAdmin } from "../lib/supabase";
 import { LoginInput, SignupInput } from "../types/auth.types";
 
 export const loginRepo = async ({ email, password }: LoginInput) => {
+  try{
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
   });
 
-  if (error) throw new Error(error.message);
+  if (error) {
+    console.error("Supabase refresh error:", error.message);
+    return null;
+  }
 
   return data;
-};
+  
+ 
+    } catch (err) {
+      throw new AppError("Database connection failed", 503);
+    }
+}
 
 export const signupRepo = async ({ email, password, name }: SignupInput) => {
+  try{
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
@@ -20,6 +31,7 @@ export const signupRepo = async ({ email, password, name }: SignupInput) => {
       emailRedirectTo: undefined,
     },
   });
+  
 
   if (error) {
     throw new Error(error.message);
@@ -43,6 +55,9 @@ export const signupRepo = async ({ email, password, name }: SignupInput) => {
     dosage: "500g",
   });
 
+  if (error) {
+        throw new AppError("Failed to fetch medication logs", 500);
+      }
   if (mediError) {
     throw new Error(mediError.message);
   }
@@ -51,14 +66,40 @@ export const signupRepo = async ({ email, password, name }: SignupInput) => {
     throw new Error(profileError.message);
   }
 
-  return user;
+  
+
+  
+  
+      return user;
+    } catch (err) {
+      throw new AppError("Database connection failed", 503);
+    }
 };
+
+
+export const refreshRepo = async (refreshToken: string) => {
+  const { data, error } = await supabase.auth.refreshSession({
+    refresh_token: refreshToken,
+  });
+
+  if (error) {
+    console.error("Supabase refresh error:", error.message);
+    return null;
+  }
+
+  return data;
+};
+
+
+
+
 
 export const logoutRepo = async () => {
   const { error } = await supabase.auth.signOut();
 
   if (error) {
-    throw new Error(error.message);
+    console.error("Supabase logout error:", error.message);
+    return false;
   }
 
   return true;

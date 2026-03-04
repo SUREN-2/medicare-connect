@@ -4,32 +4,38 @@ import * as React from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { format } from "date-fns";
-
-type StatusType = "taken" | "missed";
-
-type MedicationData = {
-  date: string;
-  status: StatusType;
-  time?: string;
-};
-
-const medicationData: MedicationData[] = [
-  { date: "2026-02-01", status: "taken", time: "8:00 PM" },
-  { date: "2026-03-02", status: "missed", time: "8:00 PM" },
-  { date: "2026-03-03", status: "taken", time: "9:00 PM" },
-  { date: "2026-03-09", status: "taken", time: "9:00 PM" },
-];
+import { usePatientLogs, usePatientStats } from "@/hooks/use-PatientLogs";
 
 export function MedicationCalendarCard() {
   const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(
     new Date(),
   );
 
+  const { data: logs, isLoading: logsLoading } = usePatientLogs();
+
+  type StatusType = "taken" | "missed" | "pending";
+
+  type MedicationData = {
+    date: string;
+    status: StatusType;
+    time?: string;
+    taken_at?: string;
+  };
+
+  console.log(logs);
+  const medicationData: MedicationData[] = logs?.data || null;
+
+  // const schedule_time = userData?.scheduleTime
+  //   ? format(new Date(`2000-01-01T${userData.scheduleTime}`), "hh:mm a")
+  //   : "N/A";
+
+  console.log("s" + medicationData);
+
   const selectedDateStr = selectedDate
     ? format(selectedDate, "yyyy-MM-dd")
     : null;
 
-  const selectedData = medicationData.find(
+  const selectedData = medicationData?.find(
     (item) => item.date === selectedDateStr,
   );
 
@@ -44,8 +50,8 @@ export function MedicationCalendarCard() {
         </CardTitle>
       </CardHeader>
 
-      <CardContent className="flex flex-col lg:flex-row gap-6">
-        <div className="w-full lg:flex-1">
+      <CardContent className="flex flex-col lg:flex-row gap-6 ">
+        <div className="w-full lg:flex-1 ">
           <Calendar
             mode="single"
             selected={selectedDate}
@@ -73,20 +79,46 @@ export function MedicationCalendarCard() {
               day_outside: "text-gray-300",
             }}
             modifiers={{
-              taken: medicationData
+              taken: (medicationData ?? [])
                 .filter((d) => d.status === "taken")
                 .map((d) => new Date(d.date)),
 
-              missed: medicationData
+              missed: (medicationData ?? [])
                 .filter((d) => d.status === "missed")
+                .map((d) => new Date(d.date)),
+
+              pending: (medicationData ?? [])
+                .filter((d) => d.status === "pending")
                 .map((d) => new Date(d.date)),
             }}
             modifiersClassNames={{
               taken: "bg-green-100 text-green-700 border border-green-300",
 
               missed: "bg-red-100 text-red-600 border border-red-300",
+
+              pending: "bg-blue-100 text-blue-600 border border-blue-300",
             }}
           />
+
+          <div className="flex items-center justify-center gap-3 mt-4">
+            {/* Green - Taken */}
+            <div className="flex items-center gap-1">
+              <span className="w-4 h-4 rounded-full bg-green-400"></span>
+              <span className="text-s text-muted-foreground">Taken</span>
+            </div>
+
+            {/* Red - Missed */}
+            <div className="flex items-center gap-1">
+              <span className="w-4 h-4 rounded-full bg-red-400"></span>
+              <span className="text-s text-muted-foreground">Missed</span>
+            </div>
+
+            {/* Blue - Pending */}
+            <div className="flex items-center gap-1">
+              <span className="w-4 h-4 rounded-full bg-blue-400"></span>
+              <span className="text-s text-muted-foreground">Pending</span>
+            </div>
+          </div>
           {/* <Calendar
             mode="single"
             selected={selectedDate}
@@ -141,10 +173,16 @@ export function MedicationCalendarCard() {
                       className={`px-3 py-1 rounded-full text-sm font-semibold ${
                         selectedData.status === "taken"
                           ? "bg-green-100 text-green-700"
-                          : "bg-red-100 text-red-600"
+                          : selectedData.status === "missed"
+                            ? "bg-red-100 text-red-600"
+                            : "bg-blue-100 text-blue-600"
                       }`}
                     >
-                      {selectedData.status === "taken" ? " Taken" : " Missed"}
+                      {selectedData.status === "taken"
+                        ? "Taken"
+                        : selectedData.status === "missed"
+                          ? "Missed"
+                          : "Pending"}
                     </span>
                   </div>
 
@@ -153,7 +191,7 @@ export function MedicationCalendarCard() {
                       <i className="bi bi-alarm text-blue-400"></i> Time
                     </span>
                     <span className="font-semibold text-gray-800">
-                      {selectedData.time || "N/A"}
+                      {selectedData.taken_at || "N/A"}
                     </span>
                   </div>
                 </div>

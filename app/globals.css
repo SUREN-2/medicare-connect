@@ -8,6 +8,13 @@
   --color-brand: #531e76;
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --color-l-primary: #967ea7;
+  --color-brand-clr: var(--color-purple-700);
+
+  --background-image-header-brand: linear-gradient(
+    to right,
+    var(--color-purple-500),
+    var(--color-indigo-500)
+  );
 
   --background-image-brand-glow: linear-gradient(
     90deg,

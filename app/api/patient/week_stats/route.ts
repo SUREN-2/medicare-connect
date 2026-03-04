@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getLast7DaysLogs } from "@/backend/services/patient.service";
+import { withAuth } from "@/backend/middleware/withAuth";
+import { User } from "@/backend/types/auth.types";
 
-export async function GET(req: NextRequest) {
+export const GET = withAuth(async (req: NextRequest, user: User) => {
   try {
-    const patientId = req.nextUrl.searchParams.get("patientId");
+    const patientId = user.id
 
     if (!patientId) {
       return NextResponse.json(
@@ -24,4 +26,4 @@ export async function GET(req: NextRequest) {
       { status: 500 },
     );
   }
-}
+})
